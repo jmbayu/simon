@@ -1140,12 +1140,7 @@ pub async fn upload_file(
 
     // Parse multipart fields
     loop {
-        let field = match tokio::time::timeout(
-            field_timeout,
-            multipart.next_field()
-        )
-        .await
-        {
+        let field = match tokio::time::timeout(field_timeout, multipart.next_field()).await {
             Ok(Ok(Some(f))) => f,
             Ok(Ok(None)) => break,
             Ok(Err(e)) => {
@@ -1174,12 +1169,7 @@ pub async fn upload_file(
         let field_name = field.name().unwrap_or("").to_string();
 
         if field_name == "path" {
-            match tokio::time::timeout(
-                Duration::from_secs(30),
-                field.text()
-            )
-            .await
-            {
+            match tokio::time::timeout(Duration::from_secs(30), field.text()).await {
                 Ok(Ok(text)) => upload_path = Some(text),
                 Ok(Err(e)) => {
                     error!("Failed to read path field: {}", e);
@@ -1294,21 +1284,18 @@ pub async fn upload_file(
 
             // Stream the file directly to disk
             let file_result: Result<u64, String> = async {
-                let mut file = tokio::fs::File::create(&file_path).await
+                let mut file = tokio::fs::File::create(&file_path)
+                    .await
                     .map_err(|e| format!("Failed to create file: {}", e))?;
                 let mut stream = field;
                 let mut total_bytes = 0u64;
                 let chunk_timeout = Duration::from_secs(300); // 5 minute timeout per chunk
 
                 loop {
-                    match tokio::time::timeout(
-                        chunk_timeout,
-                        stream.chunk()
-                    )
-                    .await
-                    {
+                    match tokio::time::timeout(chunk_timeout, stream.chunk()).await {
                         Ok(Ok(Some(chunk))) => {
-                            file.write_all(&chunk).await
+                            file.write_all(&chunk)
+                                .await
                                 .map_err(|e| format!("Failed to write chunk: {}", e))?;
                             total_bytes += chunk.len() as u64;
                         }
@@ -1318,7 +1305,8 @@ pub async fn upload_file(
                     }
                 }
 
-                file.flush().await
+                file.flush()
+                    .await
                     .map_err(|e| format!("Failed to flush file: {}", e))?;
                 Ok(total_bytes)
             }
