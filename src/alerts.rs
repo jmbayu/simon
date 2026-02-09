@@ -230,7 +230,6 @@ async fn send_notification(method: &NotificationMethod, message: &str) -> Result
 /// Send a webhook notification
 async fn send_webhook_notification(webhook: &WebHookNotif, message: &str) -> Result<(), String> {
     let client = Client::builder()
-        .use_rustls_tls()
         .build()
         .map_err(|e| format!("Failed to build HTTP client: {}", e))?;
 
