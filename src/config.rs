@@ -68,9 +68,9 @@ pub fn parse_config() -> Config {
         }
     }
 
-    if config.password_hash.is_some() {
+    if let Some(hash) = &config.password_hash {
         // check if valid bcrypt
-        if !config.password_hash.as_ref().unwrap().starts_with("$2") {
+        if !hash.starts_with("$2") {
             error!("Invalid password: Password must be a valid bcrypt hash starting with '$2'");
             std::process::exit(1);
         }
