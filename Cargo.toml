@@ -30,7 +30,8 @@ bcrypt = "0.17.0"
 uuid = {version = "1.16.0", features = ["v4"]}
 log = "^0.4"
 env_logger = "0.11"
-reqwest = { version = "^0.13" }
+reqwest = { version = "^0.12", features = ["rustls-tls"] }
+openssl = { version = "0.10.74", features = ["vendored"] }
 rust-embed = "8.8.0"
 hex = "0.4.3"
 mime_guess = "2.0.5"
