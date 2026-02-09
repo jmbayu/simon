@@ -2,3 +2,4 @@
 *.db*
 tmp*
 simon-data/
+/bin-releases
