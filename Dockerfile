@@ -1,7 +1,7 @@
 ARG TARGETARCH
 ARG TARGETVARIANT
 
-FROM scratch AS base
+FROM alpine AS base
 
 WORKDIR /app
 
