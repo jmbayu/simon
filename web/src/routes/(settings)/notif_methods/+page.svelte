@@ -296,8 +296,6 @@
 			if (key && value) res[key] = value;
 			return res;
 		}, {});
-		let body = '';
-
 		const options: {
 			method: string;
 			headers: Record<string, string>;
@@ -311,7 +309,7 @@
 			['POST', 'PUT', 'PATCH'].includes(webhookForm.config.WebHook.method) &&
 			webhookForm.config.WebHook.body
 		) {
-			body = webhookForm.config.WebHook.body.replaceAll(
+			const body = webhookForm.config.WebHook.body.replaceAll(
 				'{notif_msg}',
 				'This is a test notification'
 			);
