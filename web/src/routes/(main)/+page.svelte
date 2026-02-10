@@ -7,33 +7,36 @@
 
 	// $inspect(gdata).with(console.trace);
 
+	let sysData = $derived(gdata.data?.current);
+	let prevDataPoints = $derived(gdata.data?.prevDataPoints ?? []);
+
 	let memoryPercentage = $derived(
-		gdata.data
-			? gdata.data.mem.total_mem > 0
-				? ((gdata.data.mem.used_mem / gdata.data.mem.total_mem) * 100).toFixed(1)
+		sysData
+			? sysData.mem.total_mem > 0
+				? ((sysData.mem.used_mem / sysData.mem.total_mem) * 100).toFixed(1)
 				: 0
 			: null
 	);
 	let swapPercentage = $derived(
-		gdata.data
-			? gdata.data.mem.total_swap > 0
-				? ((gdata.data.mem.used_swap / gdata.data.mem.total_swap) * 100).toFixed(1)
+		sysData
+			? sysData.mem.total_swap > 0
+				? ((sysData.mem.used_swap / sysData.mem.total_swap) * 100).toFixed(1)
 				: 0
 			: null
 	);
 
-	let timestamps = $derived(gdata.prevDataPoints.map((d) => d.t));
-	let cpu_data = $derived(gdata.prevDataPoints.map((d) => d.cpu.avg_usage.toFixed(1)));
-	let cores = $derived(gdata.prevDataPoints.map((d) => d.cpu.usage));
-	let sys_load_1 = $derived(gdata.prevDataPoints.map((d) => d.sys.load_avg[0].toFixed(2)));
-	let sys_load_5 = $derived(gdata.prevDataPoints.map((d) => d.sys.load_avg[1].toFixed(2)));
-	let sys_load_15 = $derived(gdata.prevDataPoints.map((d) => d.sys.load_avg[2].toFixed(2)));
+	let timestamps = $derived(prevDataPoints.map((d) => d.t));
+	let cpu_data = $derived(prevDataPoints.map((d) => d.cpu.avg_usage.toFixed(1)));
+	let cores = $derived(prevDataPoints.map((d) => d.cpu.usage));
+	let sys_load_1 = $derived(prevDataPoints.map((d) => d.sys.load_avg[0].toFixed(2)));
+	let sys_load_5 = $derived(prevDataPoints.map((d) => d.sys.load_avg[1].toFixed(2)));
+	let sys_load_15 = $derived(prevDataPoints.map((d) => d.sys.load_avg[2].toFixed(2)));
 	let show_avg = $state(true),
 		show_graph_cores = $state(false),
 		show_cores = $state(false);
 </script>
 
-{#if gdata.data}
+{#if sysData}
 	<!-- System Overview Section -->
 	<div class="two-columns">
 		<!-- Left Column -->
@@ -42,9 +45,9 @@
 			{#if capabilities.cpu}
 				<div class="card">
 					<p class="card-title">CPU Usage</p>
-					<span class="usage">{gdata.data.cpu.avg_usage.toFixed(1)}%</span>
+					<span class="usage">{sysData.cpu.avg_usage.toFixed(1)}%</span>
 					<div class="bar">
-						<div class="bar-fill" style="width: {gdata.data.cpu.avg_usage.toFixed(1)}%"></div>
+						<div class="bar-fill" style="width: {sysData.cpu.avg_usage.toFixed(1)}%"></div>
 					</div>
 					<label class="switch-label">
 						<span>Show Cores</span>
@@ -55,7 +58,7 @@
 					</label>
 					{#if show_cores}
 						<div id="cores" class="core-grid" transition:slide>
-							{#each gdata.data.cpu.usage as usage, i (i)}
+							{#each sysData.cpu.usage as usage, i (i)}
 								<div class="core">
 									<div class="core-item">
 										<p>Core {i + 1}</p>
@@ -72,19 +75,19 @@
 				<div class="info-grid-0">
 					<div class="info-item">
 						<span class="info-label">Host Name:</span>
-						<span id="host-name" class="info-value">{gdata.data.sys.host_name}</span>
+						<span id="host-name" class="info-value">{sysData.sys.host_name}</span>
 					</div>
 					<div class="info-item">
 						<span class="info-label">OS:</span>
-						<span id="os-version" class="info-value">{gdata.data.sys.os_name}</span>
+						<span id="os-version" class="info-value">{sysData.sys.os_name}</span>
 					</div>
 					<div class="info-item">
 						<span class="info-label">Kernel:</span>
-						<span id="kernel-version" class="info-value">{gdata.data.sys.kernel_ver}</span>
+						<span id="kernel-version" class="info-value">{sysData.sys.kernel_ver}</span>
 					</div>
 				</div>
 				<div class="uptime-value" id="system-uptime">
-					Uptime: {formatUptime(gdata.data.sys.uptime)}
+					Uptime: {formatUptime(sysData.sys.uptime)}
 				</div>
 			</div>
 		</div>
@@ -103,9 +106,7 @@
 						<div class="info-item">
 							<span class="info-label">Memory Used/Total:</span>
 							<span id="memory-used" class="info-value"
-								>{formatBytes(gdata.data.mem.used_mem)}/{formatBytes(
-									gdata.data.mem.total_mem
-								)}</span
+								>{formatBytes(sysData.mem.used_mem)}/{formatBytes(sysData.mem.total_mem)}</span
 							>
 						</div>
 					</div>
@@ -120,9 +121,7 @@
 							<div class="info-item">
 								<span class="info-label">Swap Used/Total:</span>
 								<span id="memory-used" class="info-value"
-									>{formatBytes(gdata.data.mem.used_swap)}/{formatBytes(
-										gdata.data.mem.total_swap
-									)}</span
+									>{formatBytes(sysData.mem.used_swap)}/{formatBytes(sysData.mem.total_swap)}</span
 								>
 							</div>
 						</div>
@@ -137,15 +136,15 @@
 					<div class="load-average">
 						<div class="load-item">
 							<span class="load-label">1 Minute</span>
-							<span class="load-value" id="load-1">{gdata.data.sys.load_avg[0].toFixed(2)}</span>
+							<span class="load-value" id="load-1">{sysData.sys.load_avg[0].toFixed(2)}</span>
 						</div>
 						<div class="load-item">
 							<span class="load-label">5 Minutes</span>
-							<span class="load-value" id="load-5">{gdata.data.sys.load_avg[1].toFixed(2)}</span>
+							<span class="load-value" id="load-5">{sysData.sys.load_avg[1].toFixed(2)}</span>
 						</div>
 						<div class="load-item">
 							<span class="load-label">15 Minutes</span>
-							<span class="load-value" id="load-15">{gdata.data.sys.load_avg[2].toFixed(2)}</span>
+							<span class="load-value" id="load-15">{sysData.sys.load_avg[2].toFixed(2)}</span>
 						</div>
 					</div>
 				</div>
@@ -197,8 +196,8 @@
 					yAxisLabel="Memory Usage (%)"
 					autoScale={false}
 					data={[
-						gdata.prevDataPoints.map((x) => ((x.mem.used_mem * 100) / x.mem.total_mem).toFixed(2)),
-						gdata.prevDataPoints.map((x) => ((x.mem.used_swap * 100) / x.mem.total_swap).toFixed(2))
+						prevDataPoints.map((x) => ((x.mem.used_mem * 100) / x.mem.total_mem).toFixed(2)),
+						prevDataPoints.map((x) => ((x.mem.used_swap * 100) / x.mem.total_swap).toFixed(2))
 					]}
 					labels={['Memory', 'Swap']}
 					colors={['#4dabf7', '#ae3ec9']}

@@ -4,7 +4,7 @@
 	import type { Disk } from '$lib/types';
 
 	const disks = $derived(
-		gdata.data?.disk.disks.filter((disk) => !disk.mount_point.includes('/boot')) as
+		gdata.data?.current?.disk.disks.filter((disk) => !disk.mount_point.includes('/boot')) as
 			| Disk[]
 			| undefined
 	);

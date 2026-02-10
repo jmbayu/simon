@@ -141,7 +141,7 @@
 </script>
 
 <div class="dashboard" bind:this={dashboard}>
-	{#if ddata.status === wsStatus.CONNECTED && ddata.data?.containers?.length > 0}
+	{#if ddata.status === wsStatus.CONNECTED && (ddata.data?.containers?.length ?? 0) > 0}
 		<div class="card">
 			<p class="card-title">Docker Containers</p>
 

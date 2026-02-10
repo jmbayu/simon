@@ -1,24 +1,17 @@
-// place files you want to import through the `$lib` alias in this folder.
-// import type {  } from './types';
-import { ws_url } from './utils.svelte';
+import { createWebSocketStore } from './ws_store.svelte';
 
-const ws = new WebSocket(import.meta.env.PROD ? ws_url('ws/p') : 'ws://localhost:30000/ws/p');
-
-export const pdata = $state({
-	data: {}
+const processSocket = createWebSocketStore<Record<string, unknown>>('ws/p', {
+	initialData: {}
 });
 
-ws.onmessage = async function (event) {
-	window.event = event;
-	const compressedData = await event.data.arrayBuffer();
-	const decompressStream = new DecompressionStream('gzip');
-	const decompressedStream = new ReadableStream({
-		start(controller) {
-			controller.enqueue(compressedData);
-			controller.close();
-		}
-	}).pipeThrough(decompressStream);
+/**
+ * Reactive store for process data.
+ * Access: pdata.data, pdata.status
+ */
+export const pdata = processSocket.store;
 
-	const responseData = await new Response(decompressedStream).text();
-	pdata.data = JSON.parse(responseData);
-};
+/** Open the process WebSocket connection */
+export const open_ws = processSocket.open;
+
+/** Close the process WebSocket connection */
+export const close_ws = processSocket.close;

@@ -1,123 +1,44 @@
-import { ws_url } from './utils.svelte';
-import { wsStatus, type SystemData } from './types';
+import { createWebSocketStore } from './ws_store.svelte';
+import type { SystemData } from './types';
 
-export const gdata = $state({
-	data: null as SystemData | null,
-	prevDataPoints: [] as SystemData[],
-	status: wsStatus.INIT as wsStatus
+/** Track previous data points for chart history */
+const MAX_HISTORY = 60;
+
+interface GeneralStoreData {
+	current: SystemData | null;
+	prevDataPoints: SystemData[];
+}
+
+const generalSocket = createWebSocketStore<GeneralStoreData>('ws/g', {
+	initialData: { current: null, prevDataPoints: [] },
+	onMessage: (parsed: unknown, previous: GeneralStoreData | null) => {
+		const systemData = parsed as SystemData;
+		const prev = previous ?? { current: null, prevDataPoints: [] };
+		const prevDataPoints = [...prev.prevDataPoints];
+
+		if (prev.current !== null) {
+			prevDataPoints.push(prev.current);
+		}
+
+		if (prevDataPoints.length > MAX_HISTORY) {
+			prevDataPoints.shift();
+		}
+
+		return {
+			current: systemData,
+			prevDataPoints
+		};
+	}
 });
 
-let g_ws: WebSocket | null = null;
-let reconnectAttempt = 0;
-let reconnectTimeout: number | null = null;
-let isReconnecting = false;
+/**
+ * Reactive store for general system data.
+ * Access: gdata.data.current, gdata.data.prevDataPoints, gdata.status
+ */
+export const gdata = generalSocket.store;
 
-function getReconnectDelay(): number {
-	// Backoff with a maximum of 10 seconds
-	return Math.min(2000 * (reconnectAttempt + 1), 10000);
-}
+/** Open the general WebSocket connection */
+export const open_ws = generalSocket.open;
 
-function scheduleReconnect() {
-	if (isReconnecting) return;
-
-	isReconnecting = true;
-	const delay = getReconnectDelay();
-
-	//console.log(`Scheduling reconnect attempt in ${delay}ms`);
-
-	if (reconnectTimeout !== null) {
-		clearTimeout(reconnectTimeout);
-	}
-
-	reconnectTimeout = setTimeout(() => {
-		reconnectAttempt++;
-		isReconnecting = false;
-		open_ws();
-	}, delay) as unknown as number;
-}
-
-export function close_ws() {
-	// Cancel any pending reconnection
-	if (reconnectTimeout !== null) {
-		clearTimeout(reconnectTimeout);
-		reconnectTimeout = null;
-	}
-	isReconnecting = false;
-
-	if (g_ws !== null) {
-		try {
-			g_ws.onopen = null;
-			g_ws.onclose = null;
-			g_ws.onerror = null;
-			g_ws.onmessage = null;
-			g_ws.close();
-		} catch (e) {
-			console.error('Error while closing general WebSocket:', e);
-		}
-		g_ws = null;
-	}
-}
-
-export function open_ws() {
-	// Clean up existing connection if any
-	if (g_ws !== null) {
-		try {
-			g_ws.onopen = null;
-			g_ws.onclose = null;
-			g_ws.onerror = null;
-			g_ws.onmessage = null;
-			g_ws.close();
-		} catch (e) {
-			console.error('Error while closing existing WebSocket:', e);
-		}
-		g_ws = null;
-	}
-
-	try {
-		g_ws = new WebSocket(import.meta.env.PROD ? ws_url('ws/g') : 'ws://localhost:30000/ws/g');
-	} catch (e) {
-		console.error('WebSocket connection failed: ', e);
-		gdata.status = wsStatus.ERROR;
-		scheduleReconnect();
-		return;
-	}
-
-	g_ws.onopen = function () {
-		gdata.status = wsStatus.WAITING;
-		//console.log("WebSocket opened:", event);
-		reconnectAttempt = 0;
-	};
-
-	g_ws.onerror = function () {
-		gdata.status = wsStatus.ERROR;
-		console.error('WebSocket error observed');
-		// We'll let onclose handle the reconnection
-	};
-
-	g_ws.onclose = function () {
-		gdata.status = wsStatus.DISCONNECTED;
-		//console.log("WebSocket closed:", event);
-		scheduleReconnect();
-	};
-
-	g_ws.onmessage = async function (event) {
-		gdata.status = wsStatus.CONNECTED;
-		const compressedData = await event.data.arrayBuffer();
-		const decompressStream = new DecompressionStream('gzip');
-		const decompressedStream = new ReadableStream({
-			start(controller) {
-				controller.enqueue(compressedData);
-				controller.close();
-			}
-		}).pipeThrough(decompressStream);
-
-		const responseData = await new Response(decompressedStream).text();
-
-		if (gdata.data !== null) gdata.prevDataPoints.push(gdata.data);
-
-		if (gdata.prevDataPoints.length > 60) {
-			gdata.prevDataPoints.shift();
-		}
-		gdata.data = JSON.parse(responseData) as SystemData;
-	};
-}
+/** Close the general WebSocket connection */
+export const close_ws = generalSocket.close;

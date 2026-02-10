@@ -12,10 +12,10 @@
 
 	// Process network data when it updates
 	$effect(() => {
-		if (gdata.data && gdata.data.net && gdata.data.net.interfaces) {
+		if (gdata.data?.current && gdata.data.current.net && gdata.data.current.net.interfaces) {
 			const currentTime = Date.now();
 			// remove interfaces with 'veth' in name
-			let interfaces = gdata.data.net.interfaces;
+			let interfaces = gdata.data.current.net.interfaces;
 			if (!showAllInterfaces)
 				interfaces = interfaces.filter(
 					(iface) =>
@@ -70,7 +70,7 @@
 	});
 </script>
 
-{#if gdata.data}
+{#if gdata.data?.current}
 	<div class="card">
 		<p class="card-title">Network Interfaces</p>
 		<div class="chart-controls">
