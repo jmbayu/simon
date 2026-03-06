@@ -3,3 +3,4 @@
 tmp*
 simon-data/
 /bin-releases
+*.log

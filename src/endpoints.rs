@@ -1416,6 +1416,49 @@ pub async fn move_file(
     }
 }
 
+pub async fn get_pinger_stats(
+    State((_, config)): State<(Arc<Mutex<System>>, Arc<Config>)>,
+) -> impl IntoResponse {
+    let db = match Database::new(&config.db_path) {
+        Ok(db) => db,
+        Err(e) => {
+            return Json(ApiResponse::<Vec<models::PingerStats>>::error(format!(
+                "Failed to open database: {}",
+                e
+            )))
+            .into_response();
+        }
+    };
+
+    match db.get_pinger_stats() {
+        Ok(stats) => {
+            let pinger_stats: Vec<models::PingerStats> = stats
+                .into_iter()
+                .map(|(latency_ms, timestamp)| models::PingerStats {
+                    latency_ms,
+                    timestamp,
+                })
+                .collect();
+            Json(ApiResponse::success(pinger_stats)).into_response()
+        }
+        Err(e) => Json(ApiResponse::<Vec<models::PingerStats>>::error(format!(
+            "Failed to get pinger stats: {}",
+            e
+        )))
+        .into_response(),
+    }
+}
+
+pub async fn get_pinger_config(
+    State((_, config)): State<(Arc<Mutex<System>>, Arc<Config>)>,
+) -> impl IntoResponse {
+    let pinger_config = models::PingerConfig {
+        target: config.ping_target_resolved.clone(),
+        source: config.ping_target_source.clone(),
+    };
+    Json(ApiResponse::success(pinger_config)).into_response()
+}
+
 pub async fn delete_file(
     State((_, config)): State<(Arc<Mutex<System>>, Arc<Config>)>,
     body: Result<Json<FilePathPayload>, JsonRejection>,

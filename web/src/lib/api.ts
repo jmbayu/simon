@@ -18,7 +18,7 @@ async function apiFetch<T>(
 	options?: RequestInit
 ): Promise<{ success: true; data: T } | { success: false; error: string }> {
 	try {
-		const response = await fetch(url(endpoint), options);
+		const response = await fetch('/' + endpoint, options);
 
 		if (!response.ok) {
 			return {
@@ -313,4 +313,18 @@ export async function createFolder(path: string, name: string) {
 		},
 		body: JSON.stringify({ path, name })
 	});
+}
+
+/**
+ * Get pinger stats
+ */
+export async function getPingerStats() {
+	return apiFetch<PingerStats[]>('api/pinger/stats');
+}
+
+/**
+ * Get pinger config
+ */
+export async function getPingerConfig() {
+	return apiFetch<PingerConfig>('api/pinger/config');
 }

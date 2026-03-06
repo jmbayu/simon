@@ -45,6 +45,16 @@ pub struct Config {
     #[arg(skip)]
     pub jwt_secret: String,
 
+    /// Ping target host
+    #[arg(long)]
+    pub ping_target: Option<String>,
+
+    #[arg(skip)]
+    pub ping_target_resolved: String,
+
+    #[arg(skip)]
+    pub ping_target_source: String,
+
     #[arg(skip)]
     pub system_capabilities: models::SystemCapabilities,
 }
@@ -57,6 +67,18 @@ impl Config {
 
 pub fn parse_config() -> Config {
     let mut config = Config::parse();
+
+    // Resolve ping target
+    if let Some(target) = config.ping_target.clone() {
+        config.ping_target_resolved = target;
+        config.ping_target_source = "CLI".to_string();
+    } else if let Ok(target) = std::env::var("SIMON_PING_TARGET") {
+        config.ping_target_resolved = target;
+        config.ping_target_source = "Environment Variable".to_string();
+    } else {
+        config.ping_target_resolved = "8.8.8.8".to_string();
+        config.ping_target_source = "Default".to_string();
+    }
 
     // Ensure database directory exists
     if let Some(parent) = std::path::Path::new(&config.db_path).parent()

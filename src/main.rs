@@ -6,6 +6,7 @@ mod db;
 mod endpoints;
 mod logging;
 mod models;
+mod pinger;
 
 use alerts::check_alerts;
 use axum::{
@@ -18,8 +19,9 @@ use db::db_update;
 use endpoints::{
     add_alert, add_notif_method, browse_directory, create_folder, delete_alert, delete_file,
     delete_notif_method, download_file, fallback_handler, get_alert_vars, get_alerts,
-    get_container_logs, get_notif_methods, get_serve_dirs, historical_data, move_file, req_info,
-    serve_static, upload_file, ws_handler_d, ws_handler_g, ws_handler_p,
+    get_container_logs, get_file_content, get_notif_methods, get_pinger_config, get_pinger_stats,
+    get_serve_dirs, historical_data, move_file, req_info, serve_static, upload_file, ws_handler_d,
+    ws_handler_g, ws_handler_p,
 };
 use log::{debug, error, info};
 use std::net::SocketAddr;
@@ -130,6 +132,20 @@ async fn main() {
     });
     debug!("Alerts checking background task started");
 
+    // Network pinger background task
+    let pinger_db = match db::Database::new(&config.db_path) {
+        Ok(db) => Arc::new(db),
+        Err(e) => {
+            error!("Failed to initialize database for pinger: {}", e);
+            std::process::exit(1);
+        }
+    };
+    let ping_target = config.ping_target_resolved.clone();
+    tokio::spawn(async move {
+        pinger::start_pinger(pinger_db, ping_target).await;
+    });
+    debug!("Network pinger background task started");
+
     let mut app = Router::new()
         .route("/", get(serve_static))
         .route("/favicon.png", get(serve_static))
@@ -153,6 +169,8 @@ async fn main() {
         .route("/api/alerts", get(get_alerts))
         .route("/api/alerts/{id}", delete(delete_alert))
         .route("/api/alert_vars", get(get_alert_vars))
+        .route("/api/pinger/stats", get(get_pinger_stats))
+        .route("/api/pinger/config", get(get_pinger_config))
         .route("/api/files/dirs", get(get_serve_dirs))
         .route("/api/files/browse", get(browse_directory))
         .route("/api/files/download", get(download_file))

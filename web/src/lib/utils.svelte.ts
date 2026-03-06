@@ -36,6 +36,7 @@ export const types2names: { [key: string]: string } = {
 	total_read: 'Total Read',
 	total_write: 'Total Write',
 	disk_usage: 'Disk Usage',
+	latency_ms: 'Network Latency',
 	rx: 'RX',
 	tx: 'TX'
 };
@@ -43,7 +44,8 @@ export const types2names: { [key: string]: string } = {
 export const cat2names: { [key: string]: string } = {
 	sys: 'System',
 	net: 'Network',
-	disk: 'Storage'
+	disk: 'Storage',
+	pinger: 'Pinger'
 };
 
 export const var2unit: { [key: string]: string } = {
@@ -60,6 +62,7 @@ export const var2unit: { [key: string]: string } = {
 	total_read: 'B',
 	total_write: 'B',
 	disk_usage: '%',
+	latency_ms: 'ms',
 	rx: 'B',
 	tx: 'B'
 };
@@ -72,6 +75,7 @@ const paths = [
 	'/graphs',
 	'/network',
 	'/notif_methods',
+	'/pinger',
 	'/processes',
 	'/storage'
 ];

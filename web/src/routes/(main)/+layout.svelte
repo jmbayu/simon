@@ -56,6 +56,7 @@
 						>Network</a
 					>
 				{/if}
+				<a class="tab" class:active={page.url.pathname.endsWith('/pinger')} href="pinger">Pinger</a>
 				<!-- <a class="tab" class:active={page.url.pathname==='/processes'} href="/processes">Processes</a> -->
 				{#if capabilities?.docker}
 					<a class="tab" class:active={page.url.pathname.endsWith('/docker')} href="docker"
