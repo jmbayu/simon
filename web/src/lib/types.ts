@@ -174,3 +174,13 @@ export interface DirectoryListing {
 	path: string;
 	entries: FileEntry[];
 }
+
+export interface PingerStats {
+	latency_ms: number;
+	timestamp: number;
+}
+
+export interface PingerConfig {
+	target: string;
+	source: string;
+}

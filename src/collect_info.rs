@@ -517,6 +517,9 @@ mod tests {
             update_interval: 60,
             system_capabilities: SystemCapabilities::default(),
             upload_limit: 10737418240,
+            ping_target: None,
+            ping_target_resolved: "8.8.8.8".to_string(),
+            ping_target_source: "Default".to_string(),
         };
         let capabilities = detect_system_capabilities(&config).await;
 

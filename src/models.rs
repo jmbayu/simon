@@ -267,3 +267,15 @@ pub struct MoveFilePayload {
     pub source: String,
     pub destination: String,
 }
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct PingerStats {
+    pub latency_ms: f64,
+    pub timestamp: i64,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct PingerConfig {
+    pub target: String,
+    pub source: String,
+}

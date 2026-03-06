@@ -1,0 +1,22 @@
+
+
+███████ ██ ███    ███  ██████  ███    ██
+██      ██ ████  ████ ██    ██ ████   ██
+███████ ██ ██ ████ ██ ██    ██ ██ ██  ██
+     ██ ██ ██  ██  ██ ██    ██ ██  ██ ██
+███████ ██ ██      ██  ██████  ██   ████
+                 v0.3.2
+
+[2026-03-06T07:35:11Z INFO  simon] Update interval: 2 seconds
+[2026-03-06T07:35:11Z INFO  simon::collect_info] Detecting system capabilities
+[2026-03-06T07:35:11Z INFO  simon::collect_info] System capabilities detected: CPU=true, Memory=true, Swap=false, LoadAvg=true, Network=true, Disk=true, Processes=true, Docker=true, File Serving=false
+[2026-03-06T07:35:11Z INFO  simon::pinger] Starting pinger service for target: 8.8.8.8
+[2026-03-06T07:35:11Z WARN  simon::pinger] Failed to create ping client. Pinger service will continue with resolution-only mode or recording failures. (This might be due to missing raw socket permissions)
+[2026-03-06T07:35:11Z INFO  simon] Running without authentication
+[2026-03-06T07:35:11Z INFO  simon] Server running on http://0.0.0.0:30000
+[2026-03-06T07:36:07Z WARN  simon::endpoints] 404 Not Found: /pinger/api/pinger/stats from IP: 127.0.0.1:39760
+[2026-03-06T07:36:07Z WARN  simon::endpoints] 404 Not Found: /pinger/api/pinger/config from IP: 127.0.0.1:39760
+[2026-03-06T07:36:09Z WARN  simon::endpoints] 404 Not Found: /pinger/api/pinger/stats from IP: 127.0.0.1:39760
+[2026-03-06T07:36:09Z WARN  simon::endpoints] 404 Not Found: /pinger/api/pinger/config from IP: 127.0.0.1:39794
+[2026-03-06T07:36:11Z WARN  simon::endpoints] 404 Not Found: /pinger/api/pinger/stats from IP: 127.0.0.1:39794
+[2026-03-06T07:36:11Z WARN  simon::endpoints] 404 Not Found: /pinger/api/pinger/config from IP: 127.0.0.1:39760

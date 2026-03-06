@@ -1,0 +1,17 @@
+
+
+███████ ██ ███    ███  ██████  ███    ██
+██      ██ ████  ████ ██    ██ ████   ██
+███████ ██ ██ ████ ██ ██    ██ ██ ██  ██
+     ██ ██ ██  ██  ██ ██    ██ ██  ██ ██
+███████ ██ ██      ██  ██████  ██   ████
+                 v0.3.2
+
+[2026-03-06T07:19:58Z INFO  simon::config] Creating directory for database at: ./simon-data
+[2026-03-06T07:19:58Z INFO  simon] Update interval: 2 seconds
+[2026-03-06T07:19:58Z INFO  simon::collect_info] Detecting system capabilities
+[2026-03-06T07:19:58Z INFO  simon::collect_info] System capabilities detected: CPU=true, Memory=true, Swap=false, LoadAvg=true, Network=true, Disk=true, Processes=true, Docker=true, File Serving=false
+[2026-03-06T07:19:58Z INFO  simon::pinger] Starting pinger service for target: 1.0.0.1
+[2026-03-06T07:19:58Z ERROR simon::pinger] Failed to create ping client: Operation not permitted (os error 1). Pinger service will not start. (This might be due to missing raw socket permissions)
+[2026-03-06T07:19:58Z INFO  simon] Running without authentication
+[2026-03-06T07:19:58Z INFO  simon] Server running on http://0.0.0.0:30000

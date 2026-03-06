@@ -78,7 +78,7 @@
 	const timeOffset = new Date().getTimezoneOffset() * 60;
 
 	// Define the category order
-	const categoryOrder = ['general', 'net', 'disk'];
+	const categoryOrder = ['general', 'net', 'disk', 'pinger'];
 	const typeOrder = [
 		'cpu_usage',
 		'mem_usage',
@@ -90,6 +90,7 @@
 		'tx_rate',
 		'read_rate',
 		'write_rate',
+		'latency_ms',
 		'total_read',
 		'total_write',
 		'rx',

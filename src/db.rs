@@ -87,6 +87,15 @@ impl Database {
         }
 
         conn.execute(
+            "CREATE TABLE IF NOT EXISTS pinger_stats (
+                id INTEGER PRIMARY KEY,
+                latency_ms REAL,
+                timestamp INTEGER
+            )",
+            [],
+        )?;
+
+        conn.execute(
             "CREATE TABLE IF NOT EXISTS kv (
                 key TEXT PRIMARY KEY,
                 value BLOB
@@ -133,10 +142,46 @@ impl Database {
         }
 
         conn.execute("CREATE INDEX IF NOT EXISTS idx_kv_key ON kv (key)", [])?;
+        conn.execute(
+            "CREATE INDEX IF NOT EXISTS idx_pinger_stats_timestamp ON pinger_stats (timestamp)",
+            [],
+        )?;
 
         Ok(Database {
             conn: Arc::new(Mutex::new(conn)),
         })
+    }
+
+    pub fn record_ping(&self, latency_ms: f64) -> Result<()> {
+        let timestamp = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .unwrap()
+            .as_secs();
+        let conn = self.conn.lock().unwrap();
+        conn.execute(
+            "INSERT INTO pinger_stats (latency_ms, timestamp) VALUES (?, ?)",
+            params![latency_ms, timestamp],
+        )?;
+
+        // Keep only last 1000 records to prevent table bloat
+        conn.execute(
+            "DELETE FROM pinger_stats WHERE id IN (SELECT id FROM pinger_stats ORDER BY timestamp DESC LIMIT -1 OFFSET 1000)",
+            [],
+        )?;
+        Ok(())
+    }
+
+    pub fn get_pinger_stats(&self) -> Result<Vec<(f64, i64)>> {
+        let conn = self.conn.lock().unwrap();
+        let mut stmt = conn.prepare("SELECT latency_ms, timestamp FROM pinger_stats ORDER BY timestamp DESC LIMIT 100")?;
+        let rows = stmt.query_map([], |row| Ok((row.get(0)?, row.get(1)?)))?;
+
+        let mut stats = Vec::new();
+        for row in rows {
+            stats.push(row?);
+        }
+        stats.reverse();
+        Ok(stats)
     }
 
     pub fn get_kv_str(&self, key: &str) -> Result<Option<String>> {
@@ -172,7 +217,29 @@ impl Database {
 
         let mut series_results: Vec<HistoricalSeries> = Vec::with_capacity(3);
 
-        for cat in ["general", "net", "disk"] {
+        for cat in ["general", "net", "disk", "pinger"] {
+            if cat == "pinger" {
+                if resolution != "s" {
+                    continue;
+                }
+                let mut series = HistoricalSeries {
+                    cat: "pinger".to_string(),
+                    stype: "latency_ms".to_string(),
+                    name: "latency".to_string(),
+                    timestamps: Vec::new(),
+                    values: Vec::new(),
+                };
+                let conn = self.conn.lock().unwrap();
+                let mut stmt = conn.prepare("SELECT latency_ms, timestamp FROM pinger_stats ORDER BY timestamp ASC")?;
+                let rows = stmt.query_map([], |row| Ok((row.get::<_, f64>(0)?, row.get::<_, i64>(1)?)))?;
+                for row in rows {
+                    let (latency, timestamp) = row?;
+                    series.timestamps.push(timestamp);
+                    series.values.push(latency);
+                }
+                series_results.push(series);
+                continue;
+            }
             let table_name = format!("{}_{}", cat, resolution);
             // Build the query
             let mut query = format!("SELECT * FROM {}", table_name);
