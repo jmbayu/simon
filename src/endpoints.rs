@@ -35,7 +35,7 @@ use tower::ServiceExt;
 use tower_http::services::ServeFile;
 
 #[derive(Embed)]
-#[folder = "web/build/static"]
+#[folder = "web/build"]
 struct Asset;
 
 /// Validates that a path is within one of the allowed serve directories
